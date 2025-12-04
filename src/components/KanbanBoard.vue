@@ -290,6 +290,7 @@ const deleteBoard = async () => {
   flex-direction: column;
   min-height: 500px;
   transition: background-color var(--transition-fast);
+  overflow-y: auto;
 }
 
 .kanban-column:hover {
@@ -331,11 +332,9 @@ const deleteBoard = async () => {
 }
 
 .kanban-column__tasks {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  min-height: 0;
 }
 
 .kanban-column__empty {
