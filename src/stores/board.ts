@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Board, Task, Comment } from '@/types'
+import { commentService } from '@/services'
 
 export const useBoardStore = defineStore('board', () => {
   const boards = ref<Board[]>([])
@@ -120,12 +121,18 @@ export const useBoardStore = defineStore('board', () => {
 
   function addComment(taskId: number, comment: Comment) {
     const taskComments = allComments.value.get(taskId) || []
-    // Ensure reactivity by creating a new array
     allComments.value.set(taskId, [...taskComments, comment])
   }
 
   function getComments(taskId: number): Comment[] {
     return allComments.value.get(taskId) || []
+  }
+
+  function fetchCommentsForTask(taskId: number) {
+    return commentService.getCommentByTaskId(taskId).then((comments) => {
+      setCommentsForTask(taskId, comments) // Update Pinia store
+      return comments
+    })
   }
 
   return {
@@ -149,5 +156,6 @@ export const useBoardStore = defineStore('board', () => {
     setCommentsForTask,
     addComment,
     getComments,
+    fetchCommentsForTask,
   }
 })

@@ -74,4 +74,8 @@ export const commentService = {
     const response = await apiClient.post(`/tasks/${taskId}/comments`, createCommentDto)
     return response.data
   },
+  getCommentByTaskId: async (taskId: number): Promise<Comment[]> => {
+    const response = await apiClient.get(`/tasks/${taskId}/comments`)
+    return response.data
+  },
 }
