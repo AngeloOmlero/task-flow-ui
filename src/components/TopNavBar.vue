@@ -1,6 +1,7 @@
 <template>
   <header class="top-nav">
     <div class="top-nav__container">
+      <!-- Sidebar toggle button -->
       <button class="top-nav__menu-btn" @click="uiStore.toggleSidebar">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -17,10 +18,13 @@
         </svg>
       </button>
 
+      <!-- Title with logo -->
       <div class="top-nav__title">
+        <img :src="taskflowLogo" alt="TaskFlow Logo" class="top-nav__logo-img" />
         <h1 class="app-title">TaskFlow</h1>
       </div>
 
+      <!-- Actions -->
       <div class="top-nav__actions">
         <button
           v-if="isOwner"
@@ -60,6 +64,7 @@
           </svg>
         </button>
 
+        <!-- Profile -->
         <div class="top-nav__profile">
           <img
             v-if="authStore.user?.username"
@@ -101,6 +106,7 @@ import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
 import { useRouter } from 'vue-router'
+import taskflowLogo from '@/assets/image/task-flow.png'
 
 defineProps<{
   isOwner: boolean
@@ -155,13 +161,20 @@ const logout = () => {
 .top-nav__title {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.top-nav__logo-img {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
 }
 
 .app-title {
   font-size: 1.4rem;
   font-weight: 600;
   letter-spacing: 0.5px;
-  color: #1e293b; /* slate-800 vibe */
+  color: #1e293b;
 }
 
 .top-nav__actions {
@@ -185,7 +198,7 @@ const logout = () => {
 }
 
 .top-nav__invite-btn:hover {
-  background-color: #4f46e5; /* Darker primary */
+  background-color: #4f46e5;
 }
 
 .top-nav__invite-text {
@@ -295,6 +308,7 @@ const logout = () => {
   color: var(--color-gray-900);
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .top-nav__menu-btn {
     display: flex;
@@ -307,6 +321,16 @@ const logout = () => {
 
   .top-nav__username {
     display: none;
+  }
+
+  /* Shrink logo on mobile */
+  .top-nav__logo-img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .app-title {
+    font-size: 1.2rem;
   }
 }
 </style>
