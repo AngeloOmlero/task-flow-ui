@@ -18,14 +18,14 @@
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
           </svg>
-          <span class="sidebar__title">TaskBoard</span>
+          <span class="sidebar__title">Boards</span>
         </div>
       </div>
 
       <div class="sidebar__content">
         <div class="sidebar__section">
           <div class="sidebar__section-header">
-            <h3>Boards</h3>
+            <h3>Add board</h3>
             <button
               @click="uiStore.openModal('createBoard')"
               class="sidebar__add-btn"
@@ -33,8 +33,8 @@
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="18"
+                height="18"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -163,6 +163,7 @@ watch(
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-size: 1.6rem;
 }
 
 .sidebar__content {
@@ -185,7 +186,7 @@ watch(
 
 .sidebar__add-btn {
   background: none;
-  border: none;
+  border: 1px solid var(--color-gray-300);
   color: var(--color-gray-400);
   cursor: pointer;
   padding: var(--spacing-xs);
