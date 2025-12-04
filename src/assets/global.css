@@ -200,6 +200,7 @@ button {
 .btn-primary:hover {
   background-color: var(--color-primary-dark);
   box-shadow: var(--shadow-md);
+  color: var(--color-white);
 }
 
 .btn-primary:disabled {

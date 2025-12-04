@@ -6,6 +6,7 @@
     @dragstart="dragStart"
     @dragend="dragEnd"
   >
+    <!-- Header -->
     <div class="task-card__header">
       <h4 class="task-card__title">{{ task.title }}</h4>
       <div
@@ -17,30 +18,52 @@
       </div>
     </div>
 
+    <!-- Description -->
     <p v-if="task.description" class="task-card__description">
       {{ truncateText(task.description, 100) }}
     </p>
 
-    <div v-if="task.dueDate" class="task-card__meta">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-      <span>{{ formatDate(task.dueDate) }}</span>
+    <!-- Meta: Due Date & Comment Indicator -->
+    <div class="task-card__meta">
+      <!-- Due Date -->
+      <div v-if="task.dueDate" class="task-card__meta-item">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        <span>{{ formatDate(task.dueDate) }}</span>
+      </div>
+
+      <!-- Comment Indicator -->
+      <div v-if="commentCount > 0" class="task-card__meta-item">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        <span>{{ commentCount }}</span>
+      </div>
     </div>
 
+    <!-- Footer: Assignees -->
     <div class="task-card__footer">
-      <div v-if="task.assignees && task.assignees.length > 0" class="task-card__assignees">
+      <div v-if="task.assignees?.length" class="task-card__assignees">
         <div
           v-for="assignee in task.assignees.slice(0, 3)"
           :key="assignee.id"
@@ -56,46 +79,35 @@
           >+{{ task.assignees.length - 3 }}</span
         >
       </div>
-
-      <div class="task-card__comments-count" v-if="task.comments && task.comments.length > 0">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-        <span>{{ task.comments.length }}</span>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Task } from '../types'
+import { ref, computed } from 'vue'
+import type { Task, Comment } from '../types'
 import { useUiStore } from '../stores/ui'
 
 interface Props {
   task: Task
+  comments?: Comment[]
 }
 
 const props = defineProps<Props>()
 const uiStore = useUiStore()
 const isDragging = ref(false)
 
-const truncateText = (text: string, maxLength: number) => {
-  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
-}
+// Compute comment count safely
+const commentCount = computed(() => props.comments?.length || 0)
 
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
+// Utilities
+const truncateText = (text: string, maxLength: number) =>
+  text.length > maxLength ? text.substring(0, maxLength) + '...' : text
 
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
+// Drag handlers
 const dragStart = (event: DragEvent) => {
   isDragging.value = true
   if (event.dataTransfer) {
@@ -108,6 +120,7 @@ const dragEnd = () => {
   isDragging.value = false
 }
 
+// Open task details modal
 const openTaskDetails = () => {
   uiStore.setSelectedTaskId(props.task.id)
   uiStore.openModal('taskDetails')
@@ -116,12 +129,12 @@ const openTaskDetails = () => {
 
 <style scoped>
 .task-card {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-md);
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
   cursor: grab;
-  transition: all var(--transition-fast);
+  transition: all 0.2s;
   user-select: none;
 }
 
@@ -130,33 +143,32 @@ const openTaskDetails = () => {
 }
 
 .task-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-gray-300);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-color: #d1d5db;
 }
 
 .task-card__header {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
 }
 
 .task-card__title {
-  font-size: var(--font-size-sm);
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: #111827;
   margin: 0;
   line-height: 1.4;
   flex: 1;
 }
 
 .task-card__priority {
-  flex-shrink: 0;
-  font-size: var(--font-size-xs);
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: var(--radius-sm);
+  border-radius: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -165,58 +177,63 @@ const openTaskDetails = () => {
   background-color: #dcfce7;
   color: #166534;
 }
-
 .task-card__priority[data-priority='medium'] {
   background-color: #fef3c7;
   color: #92400e;
 }
-
 .task-card__priority[data-priority='high'] {
   background-color: #fed7aa;
   color: #9a3412;
 }
-
 .task-card__priority[data-priority='urgent'] {
   background-color: #fee2e2;
   color: #991b1b;
 }
 
 .task-card__description {
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-600);
-  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
   line-height: 1.4;
 }
 
 .task-card__meta {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-500);
-  margin-bottom: var(--spacing-sm);
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.task-card__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.task-card__meta-item span {
+  font-size: 0.75rem;
 }
 
 .task-card__footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
+  justify-content: flex-start;
+  gap: 0.5rem;
 }
 
 .task-card__assignees {
   display: flex;
   align-items: center;
-  gap: -4px;
 }
 
 .task-card__avatar {
   width: 24px;
   height: 24px;
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   overflow: hidden;
-  border: 2px solid var(--color-white);
-  box-shadow: var(--shadow-sm);
+  border: 2px solid #ffffff;
   margin-left: -8px;
   flex-shrink: 0;
 }
@@ -232,17 +249,9 @@ const openTaskDetails = () => {
 }
 
 .task-card__more {
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-600);
+  font-size: 0.75rem;
+  color: #6b7280;
   margin-left: 4px;
   font-weight: 500;
-}
-
-.task-card__comments-count {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-500);
 }
 </style>
