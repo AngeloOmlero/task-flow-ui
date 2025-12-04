@@ -1,90 +1,105 @@
 <template>
-  <aside :class="['sidebar', { 'sidebar--closed': !uiStore.sidebarOpen }]">
-    <div class="sidebar__header">
-      <div class="sidebar__logo">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <rect x="3" y="3" width="7" height="7" />
-          <rect x="14" y="3" width="7" height="7" />
-          <rect x="14" y="14" width="7" height="7" />
-          <rect x="3" y="14" width="7" height="7" />
-        </svg>
-        <span class="sidebar__title">TaskBoard</span>
-      </div>
-    </div>
-
-    <div class="sidebar__content">
-      <div class="sidebar__section">
-        <div class="sidebar__section-header">
-          <h3>Boards</h3>
-          <button
-            @click="uiStore.openModal('createBoard')"
-            class="sidebar__add-btn"
-            title="Create new board"
+  <div>
+    <!-- Sidebar -->
+    <aside :class="['sidebar', { 'sidebar--open': uiStore.sidebarOpen }]">
+      <div class="sidebar__header">
+        <div class="sidebar__logo">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          <span class="sidebar__title">TaskBoard</span>
         </div>
+      </div>
 
-        <div class="sidebar__boards">
-          <button
-            v-for="board in boardStore.boards"
-            :key="board.id"
-            @click="selectBoard(board.id)"
-            :class="[
-              'sidebar__board-item',
-              { 'sidebar__board-item--active': boardStore.currentBoardId === board.id },
-            ]"
-          >
-            <div v-once class="sidebar__board-icon">
+      <div class="sidebar__content">
+        <div class="sidebar__section">
+          <div class="sidebar__section-header">
+            <h3>Boards</h3>
+            <button
+              @click="uiStore.openModal('createBoard')"
+              class="sidebar__add-btn"
+              title="Create new board"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
-                fill="currentColor"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
               >
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-            </div>
-            <span class="sidebar__board-name">{{ board.title }}</span>
-          </button>
-
-          <div v-if="boardStore.boards.length === 0" class="sidebar__empty">
-            <p>No boards yet</p>
-            <button @click="uiStore.openModal('createBoard')" class="sidebar__create-first">
-              Create one
             </button>
+          </div>
+
+          <div class="sidebar__boards">
+            <button
+              v-for="board in boardStore.boards"
+              :key="board.id"
+              @click="
+                () => {
+                  selectBoard(board.id)
+                  closeSidebarOnMobile()
+                }
+              "
+              :class="[
+                'sidebar__board-item',
+                { 'sidebar__board-item--active': boardStore.currentBoardId === board.id },
+              ]"
+            >
+              <div class="sidebar__board-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+              </div>
+              <span class="sidebar__board-name">{{ board.title }}</span>
+            </button>
+
+            <div v-if="boardStore.boards.length === 0" class="sidebar__empty">
+              <p>No boards yet</p>
+              <button @click="uiStore.openModal('createBoard')" class="sidebar__create-first">
+                Create one
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </aside>
+    </aside>
+
+    <!-- Overlay for mobile -->
+    <div
+      class="sidebar-overlay"
+      :class="{ hidden: !uiStore.sidebarOpen }"
+      @click="uiStore.sidebarOpen = false"
+    ></div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue' // Import watch
+import { watch } from 'vue'
 import { useBoardStore } from '../stores/board'
 import { useUiStore } from '../stores/ui'
 
@@ -95,17 +110,27 @@ const selectBoard = (boardId: number) => {
   boardStore.setCurrentBoard(boardId)
 }
 
-// Add a watch to log changes in boardStore.boards
+/**
+ * Close sidebar automatically on mobile after selecting a board
+ */
+const closeSidebarOnMobile = () => {
+  if (window.innerWidth <= 1024) {
+    uiStore.sidebarOpen = false
+  }
+}
+
+// Debugging watch
 watch(
   () => boardStore.boards,
   (newBoards) => {
     console.log('Sidebar: boardStore.boards updated:', newBoards)
   },
   { deep: true },
-) // Use deep watch for array of objects
+)
 </script>
 
 <style scoped>
+/* Sidebar desktop */
 .sidebar {
   width: 260px;
   background-color: var(--color-white);
@@ -113,7 +138,7 @@ watch(
   display: flex;
   flex-direction: column;
   height: 100vh;
-  transition: margin-left var(--transition-base);
+  transition: all 0.3s ease;
   overflow-y: auto;
   position: relative;
   z-index: 30;
@@ -158,15 +183,6 @@ watch(
   margin-bottom: var(--spacing-md);
 }
 
-.sidebar__section-header h3 {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--color-gray-600);
-  margin: 0;
-}
-
 .sidebar__add-btn {
   background: none;
   border: none;
@@ -174,10 +190,10 @@ watch(
   cursor: pointer;
   padding: var(--spacing-xs);
   border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .sidebar__add-btn:hover {
@@ -203,7 +219,7 @@ watch(
   cursor: pointer;
   color: var(--color-gray-700);
   font-size: var(--font-size-sm);
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
   text-align: left;
   width: 100%;
   white-space: nowrap;
@@ -239,12 +255,6 @@ watch(
   text-align: center;
 }
 
-.sidebar__empty p {
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-500);
-  margin-bottom: var(--spacing-md);
-}
-
 .sidebar__create-first {
   background: none;
   border: none;
@@ -252,57 +262,38 @@ watch(
   cursor: pointer;
   font-size: var(--font-size-sm);
   font-weight: 500;
-  transition: color var(--transition-fast);
+  transition: color 0.2s ease;
 }
 
 .sidebar__create-first:hover {
   color: var(--color-primary-dark);
 }
 
-.sidebar__footer {
-  padding: var(--spacing-md);
-  border-top: 1px solid var(--color-gray-200);
-}
-
-.sidebar__footer-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: none;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  color: var(--color-gray-600);
-  font-size: var(--font-size-sm);
-  transition: all var(--transition-fast);
-}
-
-.sidebar__footer-item:hover {
-  background-color: var(--color-gray-100);
-  color: var(--color-primary);
-}
-
-/* Sidebar closed state */
-.sidebar--closed {
-  width: 0;
-  overflow: hidden;
-  border-right: none;
-}
-
-@media (max-width: 768px) {
+/* Mobile & tablet */
+@media (max-width: 1024px) {
   .sidebar {
-    position: absolute;
-    left: 0;
+    position: fixed;
     top: 0;
-    height: calc(100vh - 60px);
-    top: 60px;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
     z-index: 50;
     box-shadow: var(--shadow-lg);
   }
 
-  .sidebar--closed {
+  .sidebar.sidebar--open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 40;
+  }
+
+  .sidebar-overlay.hidden {
     display: none;
   }
 }
